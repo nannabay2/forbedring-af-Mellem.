@@ -1,6 +1,6 @@
 {
   "name": "mellemrum",
-  "base": "/mellemrum/",
+  "base": "/forbedring-af-mellemrum/",
   "private": true,
   "version": "1.0.0",
   "type": "module",
