@@ -6,7 +6,7 @@ const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_APIKEY;
 const headers = {
   apikey: SUPABASE_ANON_KEY,
   Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
-  "Content-Type": "application/json"
+  "Content-Type": "application/json",
 };
 
 export default function RegistrationsPage() {
@@ -16,7 +16,10 @@ export default function RegistrationsPage() {
   useEffect(() => {
     async function getRegistrations() {
       try {
-        const response = await fetch(`${SUPABASE_URL}/registrations?order=createdAt.desc`, { headers });
+        const response = await fetch(
+          `${SUPABASE_URL}/registrations?order=createdAt.desc`,
+          { headers },
+        );
 
         if (!response.ok) {
           throw new Error(`Kunne ikke hente tilmeldinger: ${response.status}`);
@@ -51,9 +54,12 @@ export default function RegistrationsPage() {
             <span>Status</span>
           </div>
           {registrations.map((registration) => {
-            const fullName = [registration.first_name, registration.last_name]
-              .filter(Boolean)
-              .join(" ") || registration.name || "Ukendt";
+            const fullName =
+              [registration.first_name, registration.last_name]
+                .filter(Boolean)
+                .join(" ") ||
+              registration.name ||
+              "Ukendt";
 
             return (
               <div className="registration-row" key={registration.id}>
@@ -62,7 +68,9 @@ export default function RegistrationsPage() {
                   <small>{registration.email}</small>
                 </div>
                 <span>{registration.eventTitle}</span>
-                <span>{new Date(registration.eventDate).toLocaleDateString("da-DK")}</span>
+                <span>
+                  {new Date(registration.eventDate).toLocaleDateString("da-DK")}
+                </span>
                 <span className="status">{registration.status}</span>
               </div>
             );

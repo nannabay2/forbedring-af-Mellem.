@@ -74,7 +74,9 @@ export default function EventPage() {
       }
 
       if (!response.ok) {
-        throw new Error(errorDetails || `Kunne ikke tilmelde: ${response.status}`);
+        throw new Error(
+          errorDetails || `Kunne ikke tilmelde: ${response.status}`,
+        );
       }
 
       setFirstName("");
@@ -86,7 +88,7 @@ export default function EventPage() {
       setErrorMessage(
         error instanceof Error && error.message
           ? error.message
-          : "Der opstod en fejl. Prøv igen."
+          : "Der opstod en fejl. Prøv igen.",
       );
     }
   }
