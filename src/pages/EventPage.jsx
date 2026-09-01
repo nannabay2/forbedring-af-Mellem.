@@ -2,16 +2,20 @@ import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router";
 
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
+const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_APIKEY;
 const headers = {
-  apikey: import.meta.env.VITE_SUPABASE_APIKEY,
+  apikey: SUPABASE_ANON_KEY,
+  Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
   "Content-Type": "application/json",
 };
 
 export default function EventPage() {
   const { eventId } = useParams();
   const [event, setEvent] = useState(null);
-  const [name, setName] = useState("");
+  const [firstName, setFirstName] = useState("");
+  const [lastName, setLastName] = useState("");
   const [email, setEmail] = useState("");
+  const [errorMessage, setErrorMessage] = useState("");
 
   useEffect(() => {
     async function getEvent() {
@@ -27,13 +31,22 @@ export default function EventPage() {
 
   async function handleSubmit(eventSubmit) {
     eventSubmit.preventDefault();
+    setErrorMessage("");
 
-    if (!name.trim() || !email.trim()) {
+    if (!firstName.trim() || !lastName.trim() || !email.trim()) {
+      setErrorMessage("Udfyld fornavn, efternavn og e-mail.");
+      return;
+    }
+
+    const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailPattern.test(email.trim())) {
+      setErrorMessage("Indtast en gyldig e-mailadresse.");
       return;
     }
 
     const payload = {
-      name: name.trim(),
+      first_name: firstName.trim(),
+      last_name: lastName.trim(),
       email: email.trim(),
       status: "Ny",
       eventTitle: event.title,
@@ -48,16 +61,33 @@ export default function EventPage() {
         body: JSON.stringify(payload),
       });
 
-      if (!response.ok) {
-        throw new Error(`Kunne ikke tilmelde: ${response.status}`);
+      const responseText = await response.text();
+      let errorDetails = "";
+
+      try {
+        const parsed = JSON.parse(responseText);
+        if (parsed?.message) {
+          errorDetails = parsed.message;
+        }
+      } catch {
+        errorDetails = responseText || "";
       }
 
-      setName("");
+      if (!response.ok) {
+        throw new Error(errorDetails || `Kunne ikke tilmelde: ${response.status}`);
+      }
+
+      setFirstName("");
+      setLastName("");
       setEmail("");
       window.alert("Din tilmelding er sendt.");
     } catch (error) {
       console.error(error);
-      window.alert("Der opstod en fejl. Prøv igen.");
+      setErrorMessage(
+        error instanceof Error && error.message
+          ? error.message
+          : "Der opstod en fejl. Prøv igen."
+      );
     }
   }
 
@@ -127,20 +157,29 @@ export default function EventPage() {
             </p>
           </div>
 
-          <form onSubmit={handleSubmit}>
+          <form onSubmit={handleSubmit} noValidate>
             <label>
-              Navn
+              Fornavn
               <input
-                value={name}
-                onChange={(inputEvent) => setName(inputEvent.target.value)}
+                value={firstName}
+                onChange={(inputEvent) => setFirstName(inputEvent.target.value)}
+              />
+            </label>
+            <label>
+              Efternavn
+              <input
+                value={lastName}
+                onChange={(inputEvent) => setLastName(inputEvent.target.value)}
               />
             </label>
             <span>E-mail</span>
             <input
+              type="email"
               value={email}
               onChange={(inputEvent) => setEmail(inputEvent.target.value)}
               placeholder="dig@example.com"
             />
+            {errorMessage && <p role="alert">{errorMessage}</p>}
             <button type="submit">Tilmeld mig</button>
           </form>
         </section>
