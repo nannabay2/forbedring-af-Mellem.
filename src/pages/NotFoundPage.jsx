@@ -34,7 +34,7 @@ export default function NotFoundPage() {
           </nav>
         </div>
         <div className="footer-bottom">
-          <p className="footer-meta">© 202X Mellemrum</p>
+          <p className="footer-meta">© 2026 Mellemrum</p>
           <p>Aarhus, Danmark</p>
         </div>
       </footer>
