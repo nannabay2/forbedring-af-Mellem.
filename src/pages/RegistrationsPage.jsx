@@ -99,7 +99,7 @@ export default function RegistrationsPage() {
           </nav>
         </div>
         <div className="footer-bottom">
-          <p className="footer-meta">© 2025 Mellemrum</p>
+          <p className="footer-meta">© 2026 Mellemrum</p>
           <p>Aarhus, Danmark</p>
         </div>
       </footer>
