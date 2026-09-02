@@ -46,6 +46,11 @@ a {
   color: inherit;
 }
 
+:focus-visible {
+  outline: 3px solid rgba(23, 63, 53, 0.7);
+  outline-offset: 3px;
+}
+
 button,
 input,
 select {
@@ -94,6 +99,17 @@ select {
     color 160ms ease;
 }
 
+.nav-links a:focus-visible,
+.hero-link:focus-visible,
+.card-link:focus-visible,
+.event-card-link:focus-visible,
+.footer-link-group a:focus-visible,
+.back-link:focus-visible,
+.signup-panel button:focus-visible {
+  outline: 3px solid rgba(23, 63, 53, 0.7);
+  outline-offset: 3px;
+}
+
 .nav-links a:hover,
 .nav-links a.active {
   background: rgba(255, 255, 255, 0.1);
@@ -131,7 +147,7 @@ select {
 .hero h1,
 .page-header h1 {
   font-size: clamp(3.2rem, 8vw, 7.5rem);
-  letter-spacing: -0.02em;
+  letter-spacing: -0.03em;
   line-height: 0.9;
   margin: 0;
   max-width: 12ch;
@@ -229,6 +245,18 @@ select:focus {
   outline: none;
 }
 
+input:focus-visible,
+select:focus-visible {
+  border-color: var(--green);
+  box-shadow: 0 0 0 3px rgba(23, 63, 53, 0.18);
+  outline: none;
+}
+
+input[aria-invalid="true"] {
+  border-color: #a5412c;
+  box-shadow: 0 0 0 3px rgba(165, 65, 44, 0.12);
+}
+
 .event-grid {
   display: grid;
   gap: 1.5rem;
@@ -239,19 +267,26 @@ select:focus {
   background: white;
   border: 1px solid var(--line);
   border-radius: 14px;
-  box-shadow: 0 8px 26px rgba(23, 32, 29, 0.05);
+  box-shadow: 0 8px 26px rgba(17, 23, 21, 0.05);
   display: flex;
   flex-direction: column;
   min-height: 100%;
   overflow: hidden;
   transition:
-    box-shadow 180ms ease,
-    transform 180ms ease;
+    box-shadow 260ms cubic-bezier(0.22, 1, 0.36, 1),
+    transform 260ms cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 .event-card:hover {
   box-shadow: var(--shadow);
-  transform: translateY(-4px);
+  transform: translateY(-7px);
+  bounce: 0.6s;
+}
+
+.event-card-link {
+  color: inherit;
+  display: block;
+  text-decoration: none;
 }
 
 .event-card img {
@@ -305,17 +340,19 @@ select:focus {
   color: white;
   font-size: 0.88rem;
   font-weight: 750;
-  margin-top: 1rem;
+  margin: 1rem 1.35rem 1.35rem;
   padding: 0.7rem 1rem;
   text-decoration: none;
   transition:
-    background 160ms ease,
-    color 160ms ease;
+    background 220ms ease,
+    color 220ms ease,
+    transform 220ms cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 .card-link:hover {
   background: var(--lime);
   color: var(--green);
+  transform: translateY(-2px);
 }
 
 .message {
@@ -644,7 +681,7 @@ select:focus {
 
 .signup-panel form {
   display: grid;
-  gap: 0.65rem;
+  gap: 0.8rem;
 }
 
 .signup-panel form > span {
@@ -655,15 +692,45 @@ select:focus {
   text-transform: uppercase;
 }
 
+.signup-panel label {
+  margin-top: 0.2rem;
+}
+
+.signup-panel [role="alert"],
+.signup-panel [role="status"] {
+  background: rgba(255, 255, 255, 0.45);
+  border: 1px solid rgba(23, 32, 29, 0.08);
+  border-radius: 10px;
+  color: var(--green);
+  font-size: 0.92rem;
+  margin: 0;
+  padding: 0.7rem 0.8rem;
+}
+
+.signup-panel [role="alert"] {
+  border-color: rgba(165, 65, 44, 0.2);
+  color: #7f2d20;
+}
+
 .signup-panel button {
   background: var(--green);
   border: 0;
+  border-radius: 999px;
   color: white;
   cursor: pointer;
   font-weight: 800;
   margin-top: 0.7rem;
   min-height: 50px;
   padding: 0.8rem 1.1rem;
+  transition:
+    transform 180ms ease,
+    box-shadow 180ms ease,
+    opacity 180ms ease;
+}
+
+.signup-panel button:hover {
+  box-shadow: 0 12px 24px rgba(23, 63, 53, 0.16);
+  transform: translateY(-2px);
 }
 
 .signup-panel button:disabled {

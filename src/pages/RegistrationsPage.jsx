@@ -18,9 +18,7 @@ export default function RegistrationsPage() {
       try {
         const response = await fetch(
           `${SUPABASE_URL}/registrations?order=createdAt.desc`,
-          {
-            headers,
-          },
+          { headers },
         );
 
         if (!response.ok) {
