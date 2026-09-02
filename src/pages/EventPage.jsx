@@ -58,17 +58,24 @@ export default function EventPage() {
       return;
     }
 
-    const payload = {
-      first_name: firstName.trim(),
-      last_name: lastName.trim(),
+    const fullName = `${firstName.trim()} ${lastName.trim()}`.trim();
+
+    const buildPayload = (useLegacyName = false) => ({
+      ...(useLegacyName
+        ? { name: fullName }
+        : {
+            first_name: firstName.trim(),
+            last_name: lastName.trim(),
+          }),
       email: email.trim(),
       status: "Ny",
       eventTitle: event.title,
       eventDate: event.date,
       eventLocation: `${event.venueName}, ${event.venueCity}`,
-    };
+    });
+    const payload = buildPayload(false);
 
-    try {
+    const submitPayload = async (payload) => {
       const response = await fetch(`${SUPABASE_URL}/registrations`, {
         method: "POST",
         headers,
@@ -93,12 +100,45 @@ export default function EventPage() {
         );
       }
 
+      return true;
+    };
+
+    try {
+      await submitPayload(payload);
+
       setFirstName("");
       setLastName("");
       setEmail("");
       setFieldErrors({ firstName: "", lastName: "", email: "" });
       setFormMessage({ type: "success", text: "Din tilmelding er sendt." });
     } catch (error) {
+      const legacySchemaError =
+        error instanceof Error &&
+        /(first_name|last_name|column.*registrations|schema cache)/i.test(
+          error.message,
+        );
+
+      if (legacySchemaError) {
+        try {
+          await submitPayload(buildPayload(true));
+          setFirstName("");
+          setLastName("");
+          setEmail("");
+          window.alert("Din tilmelding er sendt.");
+          return;
+        } catch (legacyError) {
+          console.error(legacyError);
+          setFormMessage({
+            type: "error",
+            text:
+              legacyError instanceof Error && legacyError.message
+                ? legacyError.message
+                : "Der opstod en fejl. Prøv igen.",
+          });
+          return;
+        }
+      }
+
       console.error(error);
       setFormMessage({
         type: "error",
