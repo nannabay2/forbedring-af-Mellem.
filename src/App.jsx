@@ -1,7 +1,7 @@
 import { Routes, Route, useLocation } from "react-router";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import Navbar from "./components/Navbar";
-import SlowLoader from "./components/SlowLoader";
+import AppLoader from "./components/AppLoader";
 import HomePage from "./pages/HomePage";
 import AboutPage from "./pages/AboutPage";
 import EventPage from "./pages/EventPage";
@@ -19,34 +19,9 @@ function ScrollToTop() {
 }
 
 export default function App() {
-  const location = useLocation();
-  const [showSlowLoader, setShowSlowLoader] = useState(
-    typeof window !== "undefined" ? document.readyState !== "complete" : true,
-  );
-
-  useEffect(() => {
-    const handlePageLoad = () => setShowSlowLoader(false);
-
-    if (document.readyState === "complete") {
-      setShowSlowLoader(false);
-      return undefined;
-    }
-
-    const slowLoadTimer = window.setTimeout(() => {
-      setShowSlowLoader(true);
-    }, 1000);
-
-    window.addEventListener("load", handlePageLoad);
-
-    return () => {
-      clearTimeout(slowLoadTimer);
-      window.removeEventListener("load", handlePageLoad);
-    };
-  }, [location.pathname]);
-
   return (
     <>
-      {showSlowLoader && <SlowLoader />}
+      <AppLoader />
       <ScrollToTop />
       <Navbar />
       <Routes>
