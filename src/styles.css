@@ -235,6 +235,86 @@ select:focus {
   grid-template-columns: repeat(3, minmax(0, 1fr));
 }
 
+.registration-grid {
+  display: grid;
+  gap: 1.5rem;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  padding: 0 var(--content-edge) 4rem;
+}
+
+.registration-card {
+  min-height: 100%;
+}
+
+.registration-card-header {
+  background: var(--green);
+  border-radius: 12px 12px 0 0;
+  color: white;
+  margin: -1.35rem -1.35rem 1.25rem;
+  padding: 1rem 1.1rem;
+}
+
+.registration-category {
+  color: rgba(255, 255, 255, 0.8);
+  margin: 0 0 0.5rem;
+}
+
+.registration-event-link {
+  color: white;
+  display: block;
+  font-size: clamp(1.4rem, 2vw, 2rem);
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  line-height: 1.1;
+  text-decoration: none;
+}
+
+.registration-event-link:hover,
+.registration-event-link:focus-visible {
+  color: white;
+  text-decoration: underline;
+}
+
+.registration-attendees {
+  display: grid;
+  gap: 0.8rem;
+  margin-top: 1.25rem;
+}
+
+.registration-person {
+  background: rgba(23, 63, 53, 0.03);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 0.85rem 0.9rem;
+}
+
+.registration-person strong {
+  display: block;
+  font-size: 1rem;
+}
+
+.registration-person small {
+  color: #59635f;
+  display: block;
+  margin-top: 0.2rem;
+}
+
+.registration-empty,
+.registration-empty-state {
+  background: rgba(23, 63, 53, 0.02);
+  border: 1px dashed var(--line);
+  border-radius: 12px;
+  color: #59635f;
+  padding: 0.9rem 1rem;
+}
+
+.event-card-link {
+  color: inherit;
+  display: block;
+  height: 100%;
+  text-decoration: none;
+}
+
 .event-card {
   background: white;
   border: 1px solid var(--line);
@@ -247,6 +327,12 @@ select:focus {
   transition:
     box-shadow 180ms ease,
     transform 180ms ease;
+}
+
+.event-card-link:hover .event-card,
+.event-card-link:focus-visible .event-card {
+  box-shadow: var(--shadow);
+  transform: translateY(-4px);
 }
 
 .event-card:hover {
@@ -269,7 +355,7 @@ select:focus {
 }
 
 .event-category {
-  color: #a5412c;
+  color: #ff785a;
   font-size: 0.72rem;
   font-weight: 850;
   letter-spacing: 0.14em;
@@ -512,7 +598,7 @@ select:focus {
 }
 
 .about-flow-list span {
-  color: #a5412c;
+  color: #2f695a;
   display: block;
   margin-bottom: 3.5rem;
 }
@@ -678,6 +764,7 @@ select:focus {
 }
 
 .admin-header h1 {
+  color: white;
   font-size: clamp(3rem, 7vw, 6.5rem);
   letter-spacing: -0.02em;
   line-height: 0.95;

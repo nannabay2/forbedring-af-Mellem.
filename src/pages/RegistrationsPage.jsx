@@ -10,35 +10,68 @@ const headers = {
 };
 
 export default function RegistrationsPage() {
+  const [events, setEvents] = useState([]);
   const [registrations, setRegistrations] = useState([]);
   const [registrationCount, setRegistrationCount] = useState(0);
 
   useEffect(() => {
-    async function getRegistrations() {
+    async function getAllData() {
       try {
-        const response = await fetch(
-          `${SUPABASE_URL}/registrations?order=createdAt.desc`,
-          {
+        const [eventsResponse, registrationsResponse] = await Promise.all([
+          fetch(`${SUPABASE_URL}/events?order=date.asc`, { headers }),
+          fetch(`${SUPABASE_URL}/registrations?order=createdAt.desc`, {
             headers,
-          },
-        );
+          }),
+        ]);
 
-        if (!response.ok) {
-          throw new Error(`Kunne ikke hente tilmeldinger: ${response.status}`);
+        if (!eventsResponse.ok) {
+          throw new Error(`Kunne ikke hente events: ${eventsResponse.status}`);
         }
 
-        const data = await response.json();
-        setRegistrations(data);
-        setRegistrationCount(data.length);
+        if (!registrationsResponse.ok) {
+          throw new Error(
+            `Kunne ikke hente tilmeldinger: ${registrationsResponse.status}`,
+          );
+        }
+
+        const eventsData = await eventsResponse.json();
+        const registrationsData = await registrationsResponse.json();
+
+        setEvents(eventsData);
+        setRegistrations(registrationsData);
+        setRegistrationCount(registrationsData.length);
       } catch (error) {
         console.error(error);
+        setEvents([]);
         setRegistrations([]);
         setRegistrationCount(0);
       }
     }
 
-    getRegistrations();
+    getAllData();
   }, []);
+
+  const groupedEvents = events.map((event) => {
+    const attendees = registrations.filter((registration) => {
+      const eventIds = [
+        registration.event_id,
+        registration.eventId,
+        registration.event?.id,
+      ].filter(Boolean);
+
+      const titleMatches =
+        registration.eventTitle === event.title ||
+        registration.event_title === event.title ||
+        registration.title === event.title;
+
+      return eventIds.includes(event.id) || titleMatches;
+    });
+
+    return {
+      ...event,
+      attendees,
+    };
+  });
 
   return (
     <>
@@ -48,35 +81,57 @@ export default function RegistrationsPage() {
         <p>{registrationCount} tilmeldinger i alt</p>
       </header>
       <main>
-        <div className="registration-list">
-          <div className="registration-row registration-labels">
-            <span>Navn</span>
-            <span>Event</span>
-            <span>Dato</span>
-            <span>Status</span>
-          </div>
-          {registrations.map((registration) => {
-            const fullName =
-              [registration.first_name, registration.last_name]
-                .filter(Boolean)
-                .join(" ") ||
-              registration.name ||
-              "Ukendt";
+        <div className="registration-grid">
+          {groupedEvents.length === 0 ? (
+            <p className="registration-empty-state">Ingen events fundet.</p>
+          ) : (
+            groupedEvents.map((event) => (
+              <article className="event-card registration-card" key={event.id}>
+                <div className="event-card-content">
+                  <div className="registration-card-header">
+                    <p className="event-category registration-category">
+                      {event.category || "Event"}
+                    </p>
+                    <Link
+                      className="registration-event-link"
+                      to={`/events/${event.id}`}
+                    >
+                      {event.title}
+                    </Link>
+                  </div>
 
-            return (
-              <div className="registration-row" key={registration.id}>
-                <div>
-                  <strong>{fullName}</strong>
-                  <small>{registration.email}</small>
+                  <div className="registration-attendees">
+                    {event.attendees.length > 0 ? (
+                      event.attendees.map((registration) => {
+                        const fullName =
+                          [registration.first_name, registration.last_name]
+                            .filter(Boolean)
+                            .join(" ") ||
+                          registration.name ||
+                          "Ukendt";
+
+                        return (
+                          <div
+                            className="registration-person"
+                            key={registration.id}
+                          >
+                            <strong>{fullName}</strong>
+                            <small>
+                              {registration.email || "Ingen email registreret"}
+                            </small>
+                          </div>
+                        );
+                      })
+                    ) : (
+                      <div className="registration-empty">
+                        Ingen tilmeldte endnu.
+                      </div>
+                    )}
+                  </div>
                 </div>
-                <span>{registration.eventTitle}</span>
-                <span>
-                  {new Date(registration.eventDate).toLocaleDateString("da-DK")}
-                </span>
-                <span className="status">{registration.status}</span>
-              </div>
-            );
-          })}
+              </article>
+            ))
+          )}
         </div>
       </main>
       <footer className="site-footer">
