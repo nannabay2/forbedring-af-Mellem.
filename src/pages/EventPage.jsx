@@ -15,7 +15,12 @@ export default function EventPage() {
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
   const [email, setEmail] = useState("");
-  const [errorMessage, setErrorMessage] = useState("");
+  const [fieldErrors, setFieldErrors] = useState({
+    firstName: "",
+    lastName: "",
+    email: "",
+  });
+  const [formMessage, setFormMessage] = useState({ type: "", text: "" });
 
   useEffect(() => {
     async function getEvent() {
@@ -31,16 +36,25 @@ export default function EventPage() {
 
   async function handleSubmit(eventSubmit) {
     eventSubmit.preventDefault();
-    setErrorMessage("");
+    setFormMessage({ type: "", text: "" });
 
-    if (!firstName.trim() || !lastName.trim() || !email.trim()) {
-      setErrorMessage("Udfyld fornavn, efternavn og e-mail.");
-      return;
-    }
+    const nextErrors = {
+      firstName: !firstName.trim() ? "Fornavn er påkrævet." : "",
+      lastName: !lastName.trim() ? "Efternavn er påkrævet." : "",
+      email: !email.trim()
+        ? "E-mail er påkrævet."
+        : !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())
+          ? "Indtast en gyldig e-mailadresse."
+          : "",
+    };
 
-    const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailPattern.test(email.trim())) {
-      setErrorMessage("Indtast en gyldig e-mailadresse.");
+    setFieldErrors(nextErrors);
+
+    if (Object.values(nextErrors).some(Boolean)) {
+      setFormMessage({
+        type: "error",
+        text: "Ret de markerede felter for at fortsætte.",
+      });
       return;
     }
 
@@ -59,6 +73,7 @@ export default function EventPage() {
       eventDate: event.date,
       eventLocation: `${event.venueName}, ${event.venueCity}`,
     });
+    const payload = buildPayload(false);
 
     const submitPayload = async (payload) => {
       const response = await fetch(`${SUPABASE_URL}/registrations`, {
@@ -89,13 +104,13 @@ export default function EventPage() {
     };
 
     try {
-      const primaryPayload = buildPayload(false);
-      await submitPayload(primaryPayload);
+      await submitPayload(payload);
 
       setFirstName("");
       setLastName("");
       setEmail("");
-      window.alert("Din tilmelding er sendt.");
+      setFieldErrors({ firstName: "", lastName: "", email: "" });
+      setFormMessage({ type: "success", text: "Din tilmelding er sendt." });
     } catch (error) {
       const legacySchemaError =
         error instanceof Error &&
@@ -113,21 +128,25 @@ export default function EventPage() {
           return;
         } catch (legacyError) {
           console.error(legacyError);
-          setErrorMessage(
-            legacyError instanceof Error && legacyError.message
-              ? legacyError.message
-              : "Der opstod en fejl. Prøv igen.",
-          );
+          setFormMessage({
+            type: "error",
+            text:
+              legacyError instanceof Error && legacyError.message
+                ? legacyError.message
+                : "Der opstod en fejl. Prøv igen.",
+          });
           return;
         }
       }
 
       console.error(error);
-      setErrorMessage(
-        error instanceof Error && error.message
-          ? error.message
-          : "Der opstod en fejl. Prøv igen.",
-      );
+      setFormMessage({
+        type: "error",
+        text:
+          error instanceof Error && error.message
+            ? error.message
+            : "Der opstod en fejl. Prøv igen.",
+      });
     }
   }
 
@@ -198,28 +217,98 @@ export default function EventPage() {
           </div>
 
           <form onSubmit={handleSubmit} noValidate>
-            <label>
-              Fornavn
-              <input
-                value={firstName}
-                onChange={(inputEvent) => setFirstName(inputEvent.target.value)}
-              />
-            </label>
-            <label>
-              Efternavn
-              <input
-                value={lastName}
-                onChange={(inputEvent) => setLastName(inputEvent.target.value)}
-              />
-            </label>
-            <span>E-mail</span>
+            <label htmlFor="firstName">Fornavn</label>
             <input
+              id="firstName"
+              name="firstName"
+              type="text"
+              value={firstName}
+              onChange={(inputEvent) => {
+                setFirstName(inputEvent.target.value);
+                setFieldErrors((current) => ({
+                  ...current,
+                  firstName: inputEvent.target.value.trim()
+                    ? ""
+                    : "Fornavn er påkrævet.",
+                }));
+              }}
+              aria-invalid={Boolean(fieldErrors.firstName)}
+              aria-describedby={
+                fieldErrors.firstName ? "firstName-error" : undefined
+              }
+              autoComplete="given-name"
+            />
+            {fieldErrors.firstName && (
+              <p id="firstName-error" role="alert">
+                {fieldErrors.firstName}
+              </p>
+            )}
+
+            <label htmlFor="lastName">Efternavn</label>
+            <input
+              id="lastName"
+              name="lastName"
+              type="text"
+              value={lastName}
+              onChange={(inputEvent) => {
+                setLastName(inputEvent.target.value);
+                setFieldErrors((current) => ({
+                  ...current,
+                  lastName: inputEvent.target.value.trim()
+                    ? ""
+                    : "Efternavn er påkrævet.",
+                }));
+              }}
+              aria-invalid={Boolean(fieldErrors.lastName)}
+              aria-describedby={
+                fieldErrors.lastName ? "lastName-error" : undefined
+              }
+              autoComplete="family-name"
+            />
+            {fieldErrors.lastName && (
+              <p id="lastName-error" role="alert">
+                {fieldErrors.lastName}
+              </p>
+            )}
+
+            <label htmlFor="email">E-mail</label>
+            <input
+              id="email"
+              name="email"
               type="email"
               value={email}
-              onChange={(inputEvent) => setEmail(inputEvent.target.value)}
+              onChange={(inputEvent) => {
+                const nextEmail = inputEvent.target.value;
+                setEmail(nextEmail);
+                setFieldErrors((current) => ({
+                  ...current,
+                  email: nextEmail.trim()
+                    ? /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(nextEmail.trim())
+                      ? ""
+                      : "Indtast en gyldig e-mailadresse."
+                    : "E-mail er påkrævet.",
+                }));
+              }}
               placeholder="dig@example.com"
+              aria-invalid={Boolean(fieldErrors.email)}
+              aria-describedby={fieldErrors.email ? "email-error" : undefined}
+              autoComplete="email"
             />
-            {errorMessage && <p role="alert">{errorMessage}</p>}
+            {fieldErrors.email && (
+              <p id="email-error" role="alert">
+                {fieldErrors.email}
+              </p>
+            )}
+
+            {formMessage.text && (
+              <p
+                role={formMessage.type === "error" ? "alert" : "status"}
+                aria-live="polite"
+              >
+                {formMessage.text}
+              </p>
+            )}
+
             <button type="submit">Tilmeld mig</button>
           </form>
         </section>
