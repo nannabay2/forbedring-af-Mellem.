@@ -366,7 +366,6 @@ input[aria-invalid="true"] {
 .event-card:hover {
   box-shadow: var(--shadow);
   transform: translateY(-7px);
-  bounce: 0.6s;
 }
 
 .event-card-link {
