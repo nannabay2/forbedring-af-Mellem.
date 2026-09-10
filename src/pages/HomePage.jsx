@@ -8,6 +8,8 @@ const headers = {
   "Content-Type": "application/json",
 };
 
+const DEFAULT_EVENT_CAPACITY = 12;
+
 export default function HomePage() {
   const [events, setEvents] = useState([]);
   const [search, setSearch] = useState("");
@@ -15,11 +17,45 @@ export default function HomePage() {
 
   useEffect(() => {
     async function getEvents() {
-      const response = await fetch(`${SUPABASE_URL}/events?order=date.asc`, {
-        headers,
+      const [eventsResponse, registrationsResponse] = await Promise.all([
+        fetch(`${SUPABASE_URL}/events?order=date.asc`, { headers }),
+        fetch(`${SUPABASE_URL}/registrations?order=createdAt.desc`, {
+          headers,
+        }),
+      ]);
+
+      const eventsData = await eventsResponse.json();
+      const registrationsData = await registrationsResponse.json();
+
+      const registrationsByEventTitle = registrationsData.reduce(
+        (acc, registration) => {
+          const eventTitle =
+            registration.eventTitle || registration.event_title || "";
+          if (!eventTitle) {
+            return acc;
+          }
+
+          acc[eventTitle] = (acc[eventTitle] || 0) + 1;
+          return acc;
+        },
+        {},
+      );
+
+      const normalizedEvents = eventsData.map((event) => {
+        const capacity = Number(event.capacity ?? DEFAULT_EVENT_CAPACITY);
+        const registrationsCount = registrationsByEventTitle[event.title] || 0;
+        const seatsLeft = Math.max(capacity - registrationsCount, 0);
+
+        return {
+          ...event,
+          capacity,
+          registrationsCount,
+          seatsLeft,
+          isFull: seatsLeft <= 0,
+        };
       });
-      const data = await response.json();
-      setEvents(data);
+
+      setEvents(normalizedEvents);
     }
 
     getEvents();
@@ -114,6 +150,15 @@ export default function HomePage() {
                     <span>{formatEventDate(event.date)}</span>
                     <span>{event.venueName}</span>
                   </div>
+
+                  <div
+                    className={`event-availability ${event.isFull ? "is-full" : ""}`}
+                  >
+                    {event.isFull
+                      ? "Udsolgt · max 12"
+                      : `${event.seatsLeft} pladser tilbage`}
+                  </div>
+
                   <span className="card-link">Læs mere</span>
                 </div>
               </article>

@@ -4,6 +4,7 @@ import Footer from "../components/Footer";
 
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
 const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_APIKEY;
+const DEFAULT_EVENT_CAPACITY = 12;
 const headers = {
   apikey: SUPABASE_ANON_KEY,
   Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
@@ -22,14 +23,36 @@ export default function EventPage() {
     email: "",
   });
   const [formMessage, setFormMessage] = useState({ type: "", text: "" });
+  const [registrationsCount, setRegistrationsCount] = useState(0);
 
   useEffect(() => {
     async function getEvent() {
-      const response = await fetch(`${SUPABASE_URL}/events?id=eq.${eventId}`, {
-        headers,
+      const [eventResponse, registrationsResponse] = await Promise.all([
+        fetch(`${SUPABASE_URL}/events?id=eq.${eventId}`, { headers }),
+        fetch(`${SUPABASE_URL}/registrations?order=createdAt.desc`, {
+          headers,
+        }),
+      ]);
+
+      const eventData = await eventResponse.json();
+      const registrationsData = await registrationsResponse.json();
+      const matchedEvent = eventData[0];
+
+      if (!matchedEvent) {
+        setEvent(null);
+        setRegistrationsCount(0);
+        return;
+      }
+
+      const count = registrationsData.filter(
+        (registration) => registration.eventTitle === matchedEvent.title,
+      ).length;
+
+      setEvent({
+        ...matchedEvent,
+        capacity: Number(matchedEvent.capacity ?? DEFAULT_EVENT_CAPACITY),
       });
-      const data = await response.json();
-      setEvent(data[0]);
+      setRegistrationsCount(count);
     }
 
     getEvent();
@@ -37,6 +60,18 @@ export default function EventPage() {
 
   async function handleSubmit(eventSubmit) {
     eventSubmit.preventDefault();
+
+    const capacity = Number(event.capacity ?? DEFAULT_EVENT_CAPACITY);
+    const seatsLeft = Math.max(capacity - registrationsCount, 0);
+
+    if (seatsLeft <= 0) {
+      setFormMessage({
+        type: "error",
+        text: "Dette event er fuldt booket. Der er ikke flere pladser tilbage.",
+      });
+      return;
+    }
+
     setFormMessage({ type: "", text: "" });
 
     const nextErrors = {
@@ -111,6 +146,7 @@ export default function EventPage() {
       setLastName("");
       setEmail("");
       setFieldErrors({ firstName: "", lastName: "", email: "" });
+      setRegistrationsCount((current) => current + 1);
       setFormMessage({ type: "success", text: "Din tilmelding er sendt." });
     } catch (error) {
       const legacySchemaError =
@@ -156,6 +192,9 @@ export default function EventPage() {
   }
 
   const date = new Date(event.date);
+  const eventCapacity = Number(event.capacity ?? DEFAULT_EVENT_CAPACITY);
+  const seatsLeft = Math.max(eventCapacity - registrationsCount, 0);
+  const isSoldOut = seatsLeft <= 0;
 
   return (
     <>
@@ -214,6 +253,11 @@ export default function EventPage() {
             <h2>Reserver din plads</h2>
             <p>
               Udfyld formularen, så sender vi din tilmelding til arrangøren.
+            </p>
+            <p className="event-capacity-status">
+              {isSoldOut
+                ? "Udsolgt – max 12 tilmeldinger pr. event."
+                : `${seatsLeft} af ${eventCapacity} pladser tilbage · max 12 pr. event`}
             </p>
           </div>
 
@@ -310,7 +354,9 @@ export default function EventPage() {
               </p>
             )}
 
-            <button type="submit">Tilmeld mig</button>
+            <button type="submit" disabled={isSoldOut}>
+              {isSoldOut ? "Udsolgt" : "Tilmeld mig"}
+            </button>
           </form>
         </section>
       </main>
