@@ -23,6 +23,7 @@ export default function App() {
     <>
       <AppLoader />
       <ScrollToTop />
+      <AppLoader />
       <Navbar />
       <Routes>
         <Route path="/" element={<HomePage />} />

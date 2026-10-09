@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import SlowLoader from "./SlowLoader";
 
 export default function AppLoader() {
-  const [showSlowLoader, setShowSlowLoader] = useState(true);
+  const [showSlowLoader, setShowSlowLoader] = useState(false);
 
   useEffect(() => {
     let showTimer;

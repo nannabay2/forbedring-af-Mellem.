@@ -1,6 +1,6 @@
 import { useEffect, useRef } from "react";
 import lottie from "lottie-web";
-import slowLoaderAnimation from "../assets/slow-loader.json";
+import animationData from "../assets/ellipse-1.json";
 
 export default function SlowLoader() {
   const containerRef = useRef(null);
@@ -15,20 +15,26 @@ export default function SlowLoader() {
       renderer: "svg",
       loop: true,
       autoplay: true,
-      animationData: slowLoaderAnimation,
+      animationData,
+      rendererSettings: {
+        preserveAspectRatio: "xMidYMid meet",
+      },
     });
 
-    return () => {
-      animation.destroy();
-    };
+    return () => animation.destroy();
   }, []);
 
   return (
-    <div className="slow-loader-overlay" aria-live="polite" aria-busy="true">
+    <div
+      className="slow-loader-overlay"
+      role="status"
+      aria-live="polite"
+      aria-label="Indlæser siden"
+      aria-busy="true"
+    >
       <div
-        className="slow-loader"
+        className="slow-loader-animation"
         ref={containerRef}
-        aria-label="Indlæser siden"
       />
     </div>
   );
