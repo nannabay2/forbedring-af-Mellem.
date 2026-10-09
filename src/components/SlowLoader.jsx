@@ -30,8 +30,12 @@ export default function SlowLoader() {
       role="status"
       aria-live="polite"
       aria-label="Indlæser siden"
+      aria-busy="true"
     >
-      <div className="slow-loader-animation" ref={containerRef} />
+      <div
+        className="slow-loader-animation"
+        ref={containerRef}
+      />
     </div>
   );
 }

@@ -2,19 +2,32 @@ import { useEffect, useState } from "react";
 import SlowLoader from "./SlowLoader";
 
 export default function AppLoader() {
-  const [showSlowLoader, setShowSlowLoader] = useState(true);
+  const [showSlowLoader, setShowSlowLoader] = useState(false);
 
   useEffect(() => {
-    const timer = window.setTimeout(() => {
-      setShowSlowLoader(false);
-    }, 0);
+    let showTimer;
 
-    return () => window.clearTimeout(timer);
+    const hideLoader = () => {
+      window.clearTimeout(showTimer);
+      setShowSlowLoader(false);
+    };
+
+    if (document.readyState === "complete") {
+      hideLoader();
+      return undefined;
+    }
+
+    showTimer = window.setTimeout(() => {
+      setShowSlowLoader(true);
+    }, 500);
+
+    window.addEventListener("load", hideLoader, { once: true });
+
+    return () => {
+      window.clearTimeout(showTimer);
+      window.removeEventListener("load", hideLoader);
+    };
   }, []);
 
-  if (!showSlowLoader) {
-    return null;
-  }
-
-  return <SlowLoader />;
+  return showSlowLoader ? <SlowLoader /> : null;
 }

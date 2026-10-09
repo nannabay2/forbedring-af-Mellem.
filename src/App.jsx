@@ -21,6 +21,7 @@ function ScrollToTop() {
 export default function App() {
   return (
     <>
+      <AppLoader />
       <ScrollToTop />
       <AppLoader />
       <Navbar />
